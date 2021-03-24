@@ -6,9 +6,9 @@ export class PostsController extends BaseController {
   constructor() {
     super('api/posts')
     this.router
-      .get('/', this.getAllPosts)
-      .get('/:id/comments')
       .use(Auth0Provider.getAuthorizedUserInfo)
+      .get('/:id/comments')
+      .get('/', this.getAllPosts)
       .get('/:id', this.getOne)
       .post('/', this.createPost)
       .put('/:id', this.editPost)
@@ -18,7 +18,7 @@ export class PostsController extends BaseController {
   async getAllPosts(req, res, next) {
     try {
       req.body.creatorId = req.userInfo.id
-      const posts = await postsService.getAll()
+      const posts = await postsService.getAll(req.body.creatorId)
       res.send(posts)
     } catch (error) {
       next(error)
@@ -54,7 +54,7 @@ export class PostsController extends BaseController {
     try {
       req.body.creatorId = req.userInfo.id
       req.body.id = req.params.id
-      res.send(await postsService.editPost(req.body))
+      res.send(await postsService.editPost(req.body, req.title))
     } catch (error) {
       next(error)
     }

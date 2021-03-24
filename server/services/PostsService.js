@@ -2,8 +2,8 @@
 import { dbContext } from '../db/DbContext'
 import { BadRequest, UnAuthorized } from '../utils/Errors'
 class PostsServie {
-  async getAll(query = {}) {
-    return await dbContext.Posts.find(query).populate('creator', 'name id')
+  async getAll(id) {
+    return await dbContext.Posts.find({ creatorId: id }).populate('creator', 'name id')
   }
 
   async getOne(id) {
@@ -18,8 +18,8 @@ class PostsServie {
     return await dbContext.Posts.create(body)
   }
 
-  async editPost(body) {
-    const updated = await dbContext.Posts.findOneAndUpdate({ _id: body.id, creatorId: body.creatorId }, body)
+  async editPost(body, title) {
+    const updated = await dbContext.Posts.findOneAndUpdate({ _id: body.id, creatorId: body.creatorId }, body, title)
     if (!updated) {
       throw new BadRequest('Invalid Id')
     }
@@ -29,7 +29,7 @@ class PostsServie {
   async deletePost(id, email) {
     const post = await this.getOne(id)
     // @ts-ignore
-    if (post.creatorEmail != email) {
+    if (post.creatorId != post.creator.id) {
       throw new UnAuthorized('Cannot delete another persons post')
     }
     await dbContext.Posts.findByIdAndDelete(id)
